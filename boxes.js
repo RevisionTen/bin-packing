@@ -13,33 +13,10 @@ var Box = /** @class */ (function () {
         this.width = width;
         this.height = height;
         this.area = width * height;
+        this.placed = false;
     }
     return Box;
 }());
-window.spaces = [
-    // Erster Space ist der Container.
-    new Space(0, 0, 1360, 240)
-];
-var pendingBoxes = [
-    // Die Boxen die platziert werden müssen.
-    new Box(60, 80),
-    new Box(60, 80),
-    new Box(60, 80),
-    new Box(80, 120),
-    new Box(80, 120),
-    new Box(80, 130),
-    new Box(80, 130),
-    new Box(80, 130),
-    new Box(80, 130),
-    new Box(100, 120),
-    new Box(140, 120),
-    new Box(140, 120),
-    new Box(500, 120),
-    new Box(500, 120),
-    //new Box(260, 220),
-    new Box(260, 220)
-];
-var completedBoxes = [];
 function rotateBox(box) {
     var width = box.width;
     var height = box.height;
@@ -177,44 +154,59 @@ function placeBox(box) {
     // Fertige box zurückgeben.
     return box;
 }
-// Sort pending boxes by size.
-// Biggest first.
-pendingBoxes = pendingBoxes.sort(function (a, b) { return (a.area > b.area) ? 1 : -1; });
-pendingBoxes = pendingBoxes.reverse();
-for (var boxIndex in pendingBoxes) {
-    var currentBox = pendingBoxes[boxIndex];
-    // Aktuelle Box plazieren.
-    var completedBox = placeBox(currentBox);
-    if (null === completedBox) {
-        // Box konnte in keinen Space platziert werden.
-    }
-    else {
-        // Zur Liste der ferig platzierten Boxen hinzufügen.
-        completedBoxes[boxIndex] = completedBox;
-        // Aus Liste der unplazierten Boxen entfernen.
-        delete pendingBoxes[boxIndex];
-    }
-}
 var canvasElement = document.getElementById('canvas');
 canvasElement.style.background = 'grey';
 canvasElement.width = 1360;
 canvasElement.height = 240;
 var canvas = canvasElement.getContext('2d');
 canvas.clearRect(0, 0, 1360, 240);
-var _loop_1 = function (boxKey) {
-    var box = completedBoxes[boxKey];
-    setTimeout(function () {
-        canvas.beginPath();
-        canvas.rect(box.x, box.y, box.width, box.height);
-        canvas.lineWidth = 2;
-        canvas.strokeStyle = '#000000';
-        canvas.closePath();
-        canvas.stroke();
-        canvas.fillStyle = '#ffffff';
-        canvas.fillRect(box.x, box.y, box.width, box.height);
-        console.log('draw box ' + boxKey, box);
-    }, boxKey * 0);
-};
-for (var boxKey in completedBoxes) {
-    _loop_1(boxKey);
+function updateCanvas(boxes) {
+    var completedBoxes = [];
+    for (var boxIndex in boxes) {
+        var currentBox = boxes[boxIndex];
+        // Aktuelle Box plazieren.
+        var completedBox = placeBox(currentBox);
+        if (null === completedBox) {
+            // Box konnte in keinen Space platziert werden.
+            currentBox.placed = false;
+            // Zur Liste der verarbeiteten Boxen hinzufügen.
+            completedBoxes[boxIndex] = currentBox;
+        }
+        else {
+            // Box als platziert markieren.
+            completedBox.placed = true;
+            // Zur Liste der verarbeiteten Boxen hinzufügen.
+            completedBoxes[boxIndex] = completedBox;
+        }
+    }
+    // Boxen zeichnen.
+    canvas.clearRect(0, 0, 1360, 240);
+    for (var boxKey in completedBoxes) {
+        var box = completedBoxes[boxKey];
+        if (box.placed) {
+            canvas.beginPath();
+            canvas.rect(box.x, box.y, box.width, box.height);
+            canvas.lineWidth = 2;
+            canvas.strokeStyle = '#000000';
+            canvas.closePath();
+            canvas.stroke();
+            canvas.fillStyle = '#ffffff';
+            canvas.fillRect(box.x, box.y, box.width, box.height);
+        }
+    }
+}
+// Die Boxen die platziert werden müssen.
+var pendingBoxes = [];
+function addBox(width, height) {
+    // Spaces zurücksetzen.
+    window.spaces = [
+        // Erster Space ist der Container.
+        new Space(0, 0, 1360, 240)
+    ];
+    // Add new box.
+    pendingBoxes.push(new Box(width, height));
+    // Boxen nach Größe sortieren. Größte Box zuerst.
+    pendingBoxes = pendingBoxes.sort(function (a, b) { return (a.area > b.area) ? 1 : -1; });
+    pendingBoxes = pendingBoxes.reverse();
+    updateCanvas(pendingBoxes);
 }
