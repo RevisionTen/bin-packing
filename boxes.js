@@ -210,6 +210,8 @@ var _loop_1 = function (boxKey) {
         canvas.strokeStyle = '#000000';
         canvas.closePath();
         canvas.stroke();
+        canvas.fillStyle = '#ffffff';
+        canvas.fillRect(box.x, box.y, box.width, box.height);
         console.log('draw box ' + boxKey, box);
     }, boxKey * 0);
 };

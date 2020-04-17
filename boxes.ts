@@ -265,6 +265,8 @@ for (let boxKey in completedBoxes)
         canvas.strokeStyle = '#000000';
         canvas.closePath();
         canvas.stroke();
+        canvas.fillStyle = '#ffffff';
+        canvas.fillRect(box.x, box.y, box.width, box.height);
         console.log('draw box '+boxKey, box);
     }, (boxKey as any) * 0);
 }
